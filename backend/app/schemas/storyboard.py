@@ -17,7 +17,6 @@ class Scene(BaseModel):
     action: str
     emotion: str
     entities_involved: list[str]
-    cinematic_shot: str
     lighting_mood: str
 
 
@@ -53,4 +52,3 @@ class FrameResult(BaseModel):
     scene_title:   str
     image_url:     str
     emotion:       str
-    cinematic_shot: str

@@ -3,7 +3,6 @@
 Leverages FLUX.2's structured prompting capability and combines:
   - Entity text blueprints (the "Asset Bible")
   - Scene action descriptions
-  - Cinematic shot directions
   - Lighting mood
   - Style blueprint
 """
@@ -68,7 +67,6 @@ def compose_frame_prompt(
         "background": _infer_background(scene, involved),
         "lighting": scene.lighting_mood,
         "style": style.prompt_blueprint,
-        "camera_angle": scene.cinematic_shot,
         "composition": "cinematic storyboard frame, 16:9 widescreen aspect ratio, high detail",
     }
 

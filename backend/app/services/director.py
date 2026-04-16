@@ -16,51 +16,53 @@ from app.core.styles import STYLES
 
 logger = logging.getLogger(__name__)
 
-# ── System prompt for the Director LLM ───────────────────────────────
-
 DIRECTOR_SYSTEM_PROMPT = """\
-You are a **Hollywood storyboard director** with 20 years of experience in visual storytelling.
+### ROLE
+You are a Senior UX Architect and Storyboard Director. Your goal is to transform unstructured business/product pitches into a professional 5-to-8 panel UX storyboard based on industry-standard design workflows.
 
-Your job: transform a raw business pitch into a **cinematic visual narrative** — a storyboard 
-that tells the story of the product through emotionally compelling scenes.
+### OPERATIONAL PHASES (MANDATORY CHAIN-OF-THOUGHT)
 
-## The "Snow White" Principle
-DO NOT literally depict abstract software features (e.g., "a dashboard showing data").
-Instead, focus on the **EMOTIONAL JOURNEY of the user**:
-- Show FRUSTRATION before the product (e.g., a person overwhelmed by paperwork)
-- Show DISCOVERY and HOPE when they find the solution
-- Show TRIUMPH and CONFIDENCE in the outcome
+PHASE 1: THE FOUNDATION
+- Extract ONE primary 'User Persona' and ONE specific 'Scenario'.
+- Establish a 'Visual Identity Bible': Specify the Subject's physical traits, clothing, and the setting's aesthetic to prevent visual drift.
 
-## Your Task
-Given a pitch text and an art style, extract:
+PHASE 2: USER FLOW ARCHITECTURE
+- Map the narrative into a 5-to-8 step flow.
+- Ensure the journey covers the full spectrum: Pre-app awareness -> Browsing/Comparing -> Booking/Conversion -> Real-world experience -> Post-experience reflection.
+- CRITICAL BALANCE: You MUST interleave real-world human moments with explicit App/UI interaction moments. Do not just show the real world; explicitly show the user looking at screens, interfaces, or devices where relevant.
+
+PHASE 3: PANEL SPECIFICATION
+- Each panel MUST contain: A Visual (scene/UI interaction), a User Action, and an Emotion.
+- Example Arc: 
+  - Panel 1: Real world pain point (Frustrated)
+  - Panel 2: UI Interaction — Browsing options on a glowing phone screen (Curious)
+  - Panel 3: UI Interaction — Tapping 'Book' with a confirmation screen (Relieved)
+  - Panel 4: Real world arrival at the physical destination (Excited)
+
+PHASE 4: PROMPT ENGINEERING & JSON ALIGNMENT
+- Generate a 'Refined Image Prompt' (50-70 words) for the `action` field. Use "Show, don't tell." Use lighting, camera angles, and body language to reflect the Emotion.
+- Generate a 'Caption' for the `title` field answering "What is happening and why?".
+
+### JSON SCHEMA MAPPING RULE
+You MUST map your output into the required JSON schema fields exactly as follows:
+- `title`: A short 1-2 line 'Caption' answering "What is happening?" and "Why?". Keep it extremely concise (max 20 words).
+- `action`: The 'Refined Image Prompt' (50-70 words, "show don't tell"). Explicitly describe the physical scene and any UI/App interaction visually.
+- `emotion`: The 'Underlying Emotion/Thought' (e.g. "Frustrated", "Relieved").
+- `lighting_mood`: Reflected Lighting/Atmosphere.
+- `entities_involved`: Array of entity IDs appearing in the shot.
+
+## Output Rules
+- Entity descriptions must be EXTREMELY detailed (50+ words each) to preserve the "Visual Identity Bible".
+- Generate between 5 and 8 scenes.
+
 
 1. **ENTITIES** — recurring visual elements that must stay consistent across frames:
    - Characters: describe with hyper-specific physical details (age, hair color/style, 
      eye color, clothing, accessories, body language defaults)
    - Environments: describe with specific architectural/spatial details
-   - Objects: describe with precise material, color, size details
+    - Objects: describe with precise material, color, size details
 
-2. **SCENES** — 4 to 7 cinematic beats forming a narrative arc:
-   - Each scene captures ONE emotional moment
-   - Assign a specific cinematic shot type for composition control
-   - Assign lighting mood to reinforce the emotional tone
-   - Reference which entities appear
 
-## Available Shot Types
-{shots}
-
-## Available Emotions
-{emotions}
-
-## Available Lighting Moods
-{lighting}
-
-## Output Rules
-- Entity descriptions must be EXTREMELY detailed (50+ words each)
-- Scene actions must describe a SINGLE frozen moment, not a sequence
-- The narrative must follow a clear emotional arc from problem → solution → triumph
-- Generate between 4 and 7 scenes
-- Generate between 2 and 5 entities
 """.format(
     shots=", ".join(CINEMATIC_SHOTS),
     emotions=", ".join(EMOTION_PALETTE),
@@ -103,12 +105,11 @@ RESPONSE_SCHEMA = types.Schema(
                         type=types.Type.ARRAY,
                         items=types.Schema(type=types.Type.STRING),
                     ),
-                    "cinematic_shot": types.Schema(type=types.Type.STRING),
                     "lighting_mood": types.Schema(type=types.Type.STRING),
                 },
                 required=[
                     "id", "title", "action", "emotion",
-                    "entities_involved", "cinematic_shot", "lighting_mood",
+                    "entities_involved", "lighting_mood",
                 ],
             ),
         ),
@@ -117,7 +118,7 @@ RESPONSE_SCHEMA = types.Schema(
 )
 
 
-async def analyze_pitch(pitch_text: str, selected_style: str) -> dict:
+async def analyze_pitch(pitch_text: str, selected_style: str, custom_api_key: str = None) -> dict:
     """Send pitch to Gemini and return structured storyboard outline.
 
     Returns dict with 'entities' and 'scenes' keys.
@@ -130,6 +131,10 @@ async def analyze_pitch(pitch_text: str, selected_style: str) -> dict:
         else ""
     )
 
+    api_key = custom_api_key.strip() if custom_api_key else settings.GEMINI_API_KEY
+    if not api_key:
+        raise ValueError("Google Gemini API key is missing. Please provide it in the API Details.")
+
     user_prompt = f"""\
 Analyze this business pitch and create a cinematic storyboard outline.
 {style_context}
@@ -137,7 +142,7 @@ Analyze this business pitch and create a cinematic storyboard outline.
 {pitch_text}
 """
 
-    client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    client = genai.Client(api_key=api_key)
 
     logger.info("Sending pitch to Gemini (%s) for analysis...", settings.GEMINI_MODEL)
 

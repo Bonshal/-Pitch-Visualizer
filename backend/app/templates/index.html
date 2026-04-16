@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form action="/submit" method="POST">
+  <h1>Visual Narrative Engine</h1>
+  <p>Input your business pitch, select a style, and provide your API keys. The system will automatically build a full storyboard.</p>
+  
+  <div class="card">
+    <label>Business Pitch</label>
+    <textarea name="pitch" rows="6" placeholder="Describe your product, its features, and the user's problem..." required></textarea>
+    
+    <label>Art Style</label>
+    <select name="style" id="styleSelect" required>
+      <option value="corporate_vector">Corporate Vector (Clean)</option>
+      <option value="cinematic_3d">Cinematic 3D (Photorealistic)</option>
+      <option value="watercolor_story">Watercolor Story (Human)</option>
+      <option value="noir_neon">Noir & Neon (Cyberpunk)</option>
+      <option value="retro_pixel">Retro Pixel (16-bit)</option>
+      <option value="custom">Custom Style (Write your own)</option>
+    </select>
+    
+    <div id="customStyleDiv" style="display: none; margin-top: 16px;">
+      <label>Custom Style Blueprint</label>
+      <textarea name="custom_style_prompt" rows="3" placeholder="e.g. 1980s dark fantasy vhs freeze frame, film grain, muted colors"></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top: 0; margin-bottom: 16px;">Director LLM Details</h3>
+    <label>Google Gemini API Key (For Storyboard Director extraction)</label>
+    <input type="password" name="gemini_api_key" placeholder="AIzaSy..." required>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top: 0; margin-bottom: 16px;">Provider API Details</h3>
+    <label>Provider</label>
+    <select name="provider" id="providerSelect" required>
+      <option value="bfl">Black Forest Labs (FLUX.1)</option>
+      <option value="openai">OpenAI (DALL-E 3)</option>
+      <option value="nano_banana">Google Nano Banana (Gemini Image)</option>
+      <option value="bedrock">AWS Bedrock</option>
+      <option value="huggingface">Hugging Face</option>
+    </select>
+
+    <div id="standardKey">
+      <label>API Key / Access Token</label>
+      <input type="password" name="api_key" placeholder="sk-... or hf_...">
+      
+      <label>Model ID (Optional formatting override, e.g. Hugging Face)</label>
+      <input type="text" name="model" placeholder="stabilityai/stable-diffusion-xl-base-1.0">
+    </div>
+    
+    <div id="awsKeys" style="display: none;">
+      <label>AWS Access Key ID</label>
+      <input type="text" name="aws_access_key_id">
+      <label>AWS Secret Access Key</label>
+      <input type="password" name="aws_secret_access_key">
+    </div>
+  </div>
+
+  <button type="submit" class="btn">Generate Storyboard</button>
+</form>
+
+<script>
+  const providerSelect = document.getElementById('providerSelect');
+  const standardKey = document.getElementById('standardKey');
+  const awsKeys = document.getElementById('awsKeys');
+  
+  const styleSelect = document.getElementById('styleSelect');
+  const customStyleDiv = document.getElementById('customStyleDiv');
+
+  providerSelect.addEventListener('change', (e) => {
+    if (e.target.value === 'bedrock') {
+      standardKey.style.display = 'none';
+      awsKeys.style.display = 'block';
+    } else {
+      standardKey.style.display = 'block';
+      awsKeys.style.display = 'none';
+    }
+  });
+
+  styleSelect.addEventListener('change', (e) => {
+    if (e.target.value === 'custom') {
+      customStyleDiv.style.display = 'block';
+    } else {
+      customStyleDiv.style.display = 'none';
+    }
+  });
+</script>
+{% endblock %}

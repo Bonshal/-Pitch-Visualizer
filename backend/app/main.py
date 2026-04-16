@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.api.v1.router import api_router
+from app.api.v1.endpoints.web import router as web_router
 
 app = FastAPI(
     title="Pitch Visualizer API",
@@ -21,6 +22,9 @@ app.add_middleware(
 
 # Mount v1 API routes
 app.include_router(api_router, prefix="/api/v1")
+
+# Mount Jinja2 UI routes
+app.include_router(web_router)
 
 
 @app.get("/health")

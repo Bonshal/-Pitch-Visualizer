@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px;">
+  <div>
+    <h1 style="margin-bottom: 8px;">Your Storyboard</h1>
+    <div style="font-size: 14px; color: #6b6b6b; font-weight: 500;">
+      {{ frames|length }} Frames • Generated via {{ provider|upper }}
+    </div>
+  </div>
+  <a href="/" class="btn" style="background: transparent; border: 1px solid #0a0a0a; color: #0a0a0a; font-size: 13px; padding: 8px 16px;">
+    Start Over
+  </a>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 32px;">
+  {% for frame in frames %}
+  <div style="border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; background: #fafafa;">
+    <div style="position: relative; aspect-ratio: 16/9; background: #e0e0e0;">
+      <img src="{{ frame.image_url }}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+      
+      <div style="position: absolute; top: 12px; left: 12px; background: #0a0a0a; color: #fff; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px;">
+        {{ loop.index }}
+      </div>
+    </div>
+    
+    <div style="padding: 16px;">
+      <div style="font-size: 14px; font-weight: 500; line-height: 1.5; color: #0a0a0a;">
+        {{ frame.scene_title }}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="card" style="grid-column: 1 / -1; text-align: center;">
+    <h3 style="margin-top:0;">No frames were generated.</h3>
+    <p>Check the build logs or try again.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

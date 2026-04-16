@@ -28,21 +28,31 @@ async def generate_storyboard(
     scenes:          list[Scene],
     selected_style:  str,
     provider_config: ProviderConfig,
+    custom_style_prompt: str = ""
 ) -> AsyncGenerator[dict, None]:
     """Full production pipeline — yields JSON events as frames complete.
 
     Event types:
       {"type": "status",  "message": "..."}
       {"type": "concept", "entity_id": "...", "entity_name": "...", "image_url": "..."}
-      {"type": "frame",   "scene_id": "...", "scene_title": "...",
-       "image_url": "...", "emotion": "...", "cinematic_shot": "..."}
+      {"type": "frame",   ...}
       {"type": "complete"}
       {"type": "error",   "message": "..."}
     """
-    style = STYLES.get(selected_style)
-    if not style:
-        yield {"type": "error", "message": f"Unknown style: {selected_style}"}
-        return
+    if selected_style == "custom":
+        from app.core.styles import ArtStyle
+        style = ArtStyle(
+            id="custom",
+            name="Custom Style",
+            description="User defined",
+            prompt_blueprint=custom_style_prompt.strip() or "high quality digital art, aesthetic",
+            thumbnail=""
+        )
+    else:
+        style = STYLES.get(selected_style)
+        if not style:
+            yield {"type": "error", "message": f"Unknown style: {selected_style}"}
+            return
 
     # Instantiate the correct provider from user credentials
     try:
@@ -99,7 +109,6 @@ async def generate_storyboard(
                 "scene_action":  scene.action,
                 "image_url":     image_url,
                 "emotion":       scene.emotion,
-                "cinematic_shot": scene.cinematic_shot,
                 "frame_index":   i,
                 "total_frames":  len(scenes),
             }

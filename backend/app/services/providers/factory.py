@@ -11,21 +11,21 @@ def get_provider(name: str, credentials: dict) -> ImageProvider:
         from app.services.providers.bfl import BFLProvider
         return BFLProvider(
             api_key=credentials["api_key"],
-            model=credentials.get("model", "flux-2-max"),
+            model=credentials.get("model") or "flux-pro-1.1",
         )
 
     elif name == "openai":
         from app.services.providers.openai_provider import OpenAIProvider
         return OpenAIProvider(
             api_key=credentials["api_key"],
-            model=credentials.get("model", "dall-e-3"),
+            model=credentials.get("model") or "dall-e-3",
         )
 
     elif name == "nano_banana":
         from app.services.providers.nano_banana import NanoBananaProvider
         return NanoBananaProvider(
             api_key=credentials["api_key"],
-            model=credentials.get("model", "gemini-2.0-flash-preview-image-generation"),
+            model=credentials.get("model") or "gemini-2.0-flash-preview-image-generation",
         )
 
     elif name == "bedrock":
@@ -33,11 +33,18 @@ def get_provider(name: str, credentials: dict) -> ImageProvider:
         return BedrockProvider(
             aws_access_key_id=credentials["aws_access_key_id"],
             aws_secret_access_key=credentials["aws_secret_access_key"],
-            region=credentials.get("region", "us-east-1"),
-            model_id=credentials.get("model_id", "stability.stable-diffusion-xl-v1"),
+            region=credentials.get("region") or "us-east-1",
+            model_id=credentials.get("model_id") or "stability.stable-diffusion-xl-v1",
+        )
+        
+    elif name == "huggingface":
+        from app.services.providers.huggingface import HuggingFaceProvider
+        return HuggingFaceProvider(
+            api_key=credentials["api_key"],
+            model=credentials.get("model") or "stabilityai/stable-diffusion-xl-base-1.0",
         )
 
     else:
         raise ProviderError(
-            f"Unknown provider '{name}'. Supported: bfl, openai, nano_banana, bedrock"
+            f"Unknown provider '{name}'. Supported: bfl, openai, nano_banana, bedrock, huggingface"
         )

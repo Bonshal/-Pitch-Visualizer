@@ -15,15 +15,15 @@ from app.services.providers.base import ImageProvider, ProviderError
 
 logger = logging.getLogger(__name__)
 
-BFL_API_BASE = "https://api.bfl.ai/v1"
+BFL_API_BASE = "https://api.bfl.ml/v1"
 POLL_INTERVAL = 1.0   # seconds
 POLL_TIMEOUT  = 120.0 # seconds
 
 
 class BFLProvider(ImageProvider):
-    """BFL FLUX.2 — supports native multi-reference conditioning."""
+    """BFL FLUX — supports native multi-reference conditioning."""
 
-    def __init__(self, api_key: str, model: str = "flux-2-max"):
+    def __init__(self, api_key: str, model: str = "flux-pro-1.1"):
         self.api_key = api_key
         self.model   = model
 

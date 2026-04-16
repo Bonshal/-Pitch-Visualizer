@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card" style="text-align: center; padding: 60px 24px;">
+  <h2 id="statusTitle">Analyzing Pitch...</h2>
+  <p id="statusMsg">Please wait while the AI Director processes your request.</p>
+  
+  <div style="width: 100%; max-width: 400px; height: 6px; background: #e0e0e0; border-radius: 4px; margin: 0 auto; overflow: hidden;">
+    <div id="progressBar" style="width: 5%; height: 100%; background: #0a0a0a; transition: width 0.3s;"></div>
+  </div>
+</div>
+
+<script>
+  const sessionId = "{{ session_id }}";
+  const evtSource = new EventSource(`/api/v1/generate/stream?session_id=${sessionId}`);
+  
+  const statusTitle = document.getElementById('statusTitle');
+  const statusMsg = document.getElementById('statusMsg');
+  const progressBar = document.getElementById('progressBar');
+
+  evtSource.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    
+    if (data.type === "status") {
+      statusMsg.innerText = data.message;
+      progressBar.style.width = Math.min(parseInt(progressBar.style.width) + 2, 90) + "%";
+    }
+    else if (data.type === "concept") {
+      statusTitle.innerText = "Generating Concept Art...";
+      statusMsg.innerText = `Character locked: ${data.entity_name}`;
+    }
+    else if (data.type === "frame") {
+      statusTitle.innerText = `Generating Frame ${data.frame_index + 1} of ${data.total_frames}`;
+      statusMsg.innerText = data.scene_action;
+      const progress = ((data.frame_index + 1) / data.total_frames) * 100;
+      progressBar.style.width = progress + "%";
+    }
+    else if (data.type === "complete") {
+      evtSource.close();
+      progressBar.style.width = "100%";
+      statusTitle.innerText = "Complete!";
+      statusMsg.innerText = "Redirecting to storyboard...";
+      setTimeout(() => {
+        window.location.href = `/storyboard/${sessionId}`;
+      }, 1000);
+    }
+    else if (data.type === "error") {
+      evtSource.close();
+      statusTitle.innerText = "Error Occurred";
+      statusTitle.style.color = "#e53e3e";
+      statusMsg.innerText = data.message;
+      progressBar.style.background = "#e53e3e";
+    }
+  };
+</script>
+{% endblock %}
