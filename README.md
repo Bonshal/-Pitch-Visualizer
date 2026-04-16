@@ -1,3 +1,12 @@
+---
+title: Pitch Visualizer
+emoji: 🎬
+colorFrom: blue
+colorTo: purple
+sdk: docker
+pinned: false
+app_port: 7860
+---
 # 🎬 Context-Aware Storyboard Engine (Pitch Visualizer)
 
 > **Transform unstructured business pitches into cinematic, human-centric visual storyboards through multi-agent AI orchestration.**
