@@ -1,11 +1,12 @@
+from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables / .env file."""
 
-    BFL_API_KEY: str
-    GEMINI_API_KEY: str
+    BFL_API_KEY: Optional[str] = None
+    GEMINI_API_KEY: Optional[str] = None
     BFL_API_BASE: str = "https://api.bfl.ai/v1"
     BFL_MODEL: str = "flux-2-max"
     GEMINI_MODEL: str = "gemini-2.5-flash"
