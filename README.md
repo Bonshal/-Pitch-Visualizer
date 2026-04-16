@@ -14,6 +14,8 @@ app_port: 7860
 The Pitch Visualizer is a monolithic, server-side rendered FastAPI web application designed to bridge the gap between abstract product ideation and tangible UX vision. Instead of forcing teams to manually sketch use-cases, this engine ingests rough business pitches and automatically engineers a 5-to-8 panel storyboard
 
 ---
+## Live demo
+Try the app here: https://huggingface.co/spaces/Blanc25/pitchVisualizer
 
 ## 🌟 Key Capabilities
 
